@@ -10,4 +10,5 @@ fi
 
 cd /home/python/app
 
-exec uvicorn main:app --host 0.0.0.0 --port 8000
+# Use python -m uvicorn so we don't depend on PATH exposing the uvicorn script
+exec python -m uvicorn main:app --host 0.0.0.0 --port 8000
