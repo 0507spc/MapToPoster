@@ -2,7 +2,7 @@ pipeline {
   agent { label 'miniserver' }
 
   environment {
-    REGISTRY_URL   = 'nexus.server.cranie.com'
+    REGISTRY_URL   = 'nexus.server.cranie.com/docker'
     REGISTRY_REPO  = 'maptoposter'          // nexus.server.cranie.com/maptoposter/...
     IMAGE_NAME     = 'maptoposter-api'
 
