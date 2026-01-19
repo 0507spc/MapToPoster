@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   maptoposter-api:
-    image: nexus.server.cranie.com/maptoposter/maptoposter-api:latest
+    image: nexus.server.cranie.com/docker/maptoposter/maptoposter-api:latest
     container_name: maptoposter-api
     ports:
       - "58000:8000"      # host 58000 -> container 8000 (port prefix 5)
