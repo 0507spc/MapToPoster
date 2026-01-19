@@ -2,15 +2,10 @@ pipeline {
   agent { label 'miniserver' }
 
   environment {
-    // Nexus Docker registry
-    REGISTRY_URL  = 'nexus.server.cranie.com'
-    REGISTRY_REPO = 'maptoposter'          // Docker repo / namespace
-    IMAGE_NAME    = 'maptoposter'          // Final image name
+    REGISTRY_URL   = 'nexus.server.cranie.com'
+    REGISTRY_REPO  = 'maptoposter'          // nexus.server.cranie.com/maptoposter/...
+    IMAGE_NAME     = 'maptoposter-api'
 
-    // GitHub repo to clone
-    MAPTOP_REPO   = 'https://github.com/originalankur/maptoposter.git'
-
-    // Nexus Docker creds (Jenkins credentials ID)
     REGISTRY_CREDS = 'nexus-docker-creds'
   }
 
@@ -19,7 +14,7 @@ pipeline {
   }
 
   triggers {
-    // Example: daily at 02:00; or use pollSCM / webhooks as you prefer
+    // Example: daily at 02:00; tune as you like
     cron('H 2 * * *')
   }
 
@@ -27,44 +22,29 @@ pipeline {
 
     stage('Checkout pipeline repo') {
       steps {
-        // This clones the repo that contains this Jenkinsfile
         checkout scm
       }
     }
 
-    stage('Clone maptoposter') {
-      steps {
-        sh '''
-          rm -rf maptoposter
-          git clone "${MAPTOP_REPO}" maptoposter
-        '''
-      }
-    }
-
-    stage('Compute image tags') {
+    stage('Compute image tag') {
       steps {
         script {
-          dir('maptoposter') {
-            def gitHash = sh(
-              script: 'git rev-parse --short HEAD',
-              returnStdout: true
-            ).trim()
-
-            // Dynamic tag: <short-hash>-<build-number>
-            env.FULL_TAG    = "${gitHash}-${env.BUILD_NUMBER}"
-            env.DOCKER_IMAGE = "${REGISTRY_URL}/${REGISTRY_REPO}/${IMAGE_NAME}:${FULL_TAG}"
-            env.LATEST_IMAGE = "${REGISTRY_URL}/${REGISTRY_REPO}/${IMAGE_NAME}:latest"
-          }
-          echo "Full tag: ${env.FULL_TAG}"
-          echo "Image: ${env.DOCKER_IMAGE}"
-          echo "Latest: ${env.LATEST_IMAGE}"
+          def gitHash = sh(
+            script: 'git rev-parse --short HEAD',
+            returnStdout: true
+          ).trim()
+          env.FULL_TAG     = "${gitHash}-${env.BUILD_NUMBER}"
+          env.DOCKER_IMAGE = "${REGISTRY_URL}/${REGISTRY_REPO}/${IMAGE_NAME}:${FULL_TAG}"
+          env.LATEST_IMAGE = "${REGISTRY_URL}/${REGISTRY_REPO}/${IMAGE_NAME}:latest"
         }
+        echo "Image: ${env.DOCKER_IMAGE}"
+        echo "Latest: ${env.LATEST_IMAGE}"
       }
     }
 
     stage('Docker Build') {
       steps {
-        dir('maptoposter') {
+        dir('api') {
           sh '''
             docker build \
               -t "${IMAGE_NAME}:${FULL_TAG}" \
@@ -77,7 +57,6 @@ pipeline {
     stage('Tag for Nexus') {
       steps {
         sh '''
-          # Tag dynamic and latest pointing to same local image
           docker tag "${IMAGE_NAME}:${FULL_TAG}" "${DOCKER_IMAGE}"
           docker tag "${IMAGE_NAME}:${FULL_TAG}" "${LATEST_IMAGE}"
         '''
