@@ -10,6 +10,11 @@ RUN groupadd -g 10000 python && useradd -u 10000 -g 10000 -m python
 
 WORKDIR /home/python/app
 
+# FIXED: Create osmnx cache dir as root, then chown to python user
+RUN mkdir -p /home/python/.local/share/osmnx/cache \
+ && mkdir -p /home/python/.cache \
+ && chown -R python:python /home/python/.local /home/python/.cache
+
 # Clone MapToPoster repo
 RUN git clone https://github.com/originalankur/maptoposter.git /home/python/app/maptoposter
 
