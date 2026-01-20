@@ -11,9 +11,11 @@ RUN groupadd -g 10000 python && useradd -u 10000 -g 10000 -m python
 WORKDIR /home/python/app
 
 # FIXED: Create osmnx cache dir as root, then chown to python user
-RUN mkdir -p /home/python/.local/share/osmnx/cache \
- && mkdir -p /home/python/.cache \
- && chown -R python:python /home/python/.local /home/python/.cache
+#RUN mkdir -p /home/python/.local/share/osmnx/cache \
+# && mkdir -p /home/python/.cache \
+# && chown -R python:python /home/python/.local /home/python/.cache
+
+USER python
 
 # Clone MapToPoster repo
 RUN git clone https://github.com/originalankur/maptoposter.git /home/python/app/maptoposter
@@ -23,7 +25,7 @@ COPY --chown=python:python main.py requirements.txt uvicorn_start.sh ./
 
 RUN chmod +x uvicorn_start.sh
 
-USER python
+#USER python
 
 # Install python deps: first MapToPoster requirements, then API deps[web:24][web:14][web:31]
 RUN pip install --no-cache-dir --upgrade pip \
