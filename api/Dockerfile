@@ -15,8 +15,6 @@ WORKDIR /home/python/app
 # && mkdir -p /home/python/.cache \
 # && chown -R python:python /home/python/.local /home/python/.cache
 
-USER python
-
 # Clone MapToPoster repo
 RUN git clone https://github.com/originalankur/maptoposter.git /home/python/app/maptoposter
 
@@ -25,7 +23,10 @@ COPY --chown=python:python main.py requirements.txt uvicorn_start.sh ./
 
 RUN chmod +x uvicorn_start.sh
 
-#USER python
+# Fix permissions for non-root user
+RUN chown -R python:python /home/python/app
+
+USER python
 
 # Install python deps: first MapToPoster requirements, then API deps[web:24][web:14][web:31]
 RUN pip install --no-cache-dir --upgrade pip \
